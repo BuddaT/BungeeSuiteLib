@@ -8,6 +8,15 @@
 	<name>BungeeSuiteLib</name>
 	<packaging>jar</packaging>
 	
+	<dependencies>
+		<dependency>
+			<groupId>mysql</groupId>
+			<artifactId>mysql-connector-java</artifactId>
+			<version>5.1.24</version>
+			<scope>runtime</scope>
+		</dependency>
+	</dependencies>
+	
 	<build>
 		<plugins>
 			<plugin>
