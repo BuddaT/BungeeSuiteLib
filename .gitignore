@@ -1,6 +1,11 @@
+/.settings
+.project
+.classpath
 *.class
+*.*~
 
 # Package Files #
+/target
 *.jar
 *.war
 *.ear
