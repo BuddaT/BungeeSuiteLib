@@ -2,10 +2,12 @@ package net.buddat.bungeesuite.database;
 
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
-import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+
+import com.jolbox.bonecp.BoneCP;
+import com.jolbox.bonecp.BoneCPConfig;
 
 import net.buddat.bungeesuite.database.DatabaseDependencyException;
 
@@ -13,20 +15,22 @@ import net.buddat.bungeesuite.database.DatabaseDependencyException;
 public class Database {
 	private static final String DRIVER_MYSQL = "com.mysql.jdbc.Driver";
 	
-	private final String username, password;
-	private final String connectionURL;
+	private final BoneCPConfig config;
+	private final BoneCP connectionPool;
 	
 	public Database(String host, String database, String port, String username,
 			String password) throws DatabaseDependencyException, SQLException {
-		this.username = username;
-		this.password = password;
-		connectionURL = "jdbc:mysql://" + host +":" + port + "/" + database;
 		// fail fast
 		try {
 			Class.forName(DRIVER_MYSQL);
 		} catch (ClassNotFoundException e) {
 			throw new DatabaseDependencyException("Could not find class for Mysql database drivers", e);
 		}
+		config = new BoneCPConfig();
+		config.setJdbcUrl("jdbc:mysql://" + host +":" + port + "/" + database);
+		config.setUsername(username);
+		config.setPassword(password);
+		connectionPool = new BoneCP(config);
 		// attempt connection
 		Connection connection = getConnection();
 		connection.close();
@@ -40,7 +44,7 @@ public class Database {
 	 * @throws SQLException
 	 */
 	public Connection getConnection() throws SQLException {
-		return DriverManager.getConnection(connectionURL, username, password);
+		return connectionPool.getConnection();
 	}
 	
 	/**
