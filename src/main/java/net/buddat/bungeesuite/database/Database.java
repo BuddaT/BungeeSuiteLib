@@ -6,6 +6,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+import org.apache.commons.dbutils.QueryRunner;
+
 import com.jolbox.bonecp.BoneCP;
 import com.jolbox.bonecp.BoneCPConfig;
 
@@ -17,6 +19,7 @@ public class Database {
 	
 	private final BoneCPConfig config;
 	private final BoneCP connectionPool;
+	private final QueryRunner queryRunner;
 	
 	public Database(String host, String database, String port, String username,
 			String password) throws DatabaseDependencyException, SQLException {
@@ -31,6 +34,7 @@ public class Database {
 		config.setUsername(username);
 		config.setPassword(password);
 		connectionPool = new BoneCP(config);
+		queryRunner = new QueryRunner();
 		// attempt connection
 		Connection connection = getConnection();
 		connection.close();
@@ -56,19 +60,62 @@ public class Database {
 	 * @throws SQLException
 	 *             if any errors occur while executing the query.
 	 */
-	public int updateQuery(String query) throws SQLException {
+	public int update(String sql) throws SQLException {
 		try (Connection connection = getConnection()) {
-			return updateQuery(query, connection);
+			return update(connection, sql);
 		}
 	}
 	
-	public int updateQuery(String query, Connection connection) throws SQLException {
-		Statement statement = connection.createStatement();
-		int rowsUpdated = statement.executeUpdate(query);
-		statement.close();
-		return rowsUpdated;
+	/**
+	 * Executes an SQL INSERT, UPDATE or DELETE query using the specified
+	 * connection, without any replacement parameters.
+	 * 
+	 * @param connection
+	 *            The connection to use to run the query.
+	 * @param sql
+	 *            The SQL statement to execute.
+	 * @return The number of rows updated.
+	 * @throws SQLException
+	 *             if a database error occurs
+	 */
+	public int update(Connection connection, String sql) throws SQLException {
+		return queryRunner.update(connection, sql);
+	}
+	
+	/**
+	 * Excecutes an SQL INSERT, UPDATE or DELETE query using a single
+	 * replacement parameter.
+	 * 
+	 * @param sql
+	 *            The SQL statement to execute.
+	 * @param param
+	 *            The replacement parameter.
+	 * @return The number of rows updated
+	 * @throws SQLException
+	 *             if a database error occurs
+	 */
+	public int update(String sql, Object param) throws SQLException {
+		try (Connection connection = getConnection()) {
+			return queryRunner.update(connection, sql, param);
+		}
 	}
 
+	/**
+	 * Executes the given SQL INSERT, UPDATE or DELETE statement.
+	 * 
+	 * @param sql
+	 *            SQL to execute.
+	 * @param params
+	 *            Parameters to bind to placeholders (ie. '?'s).
+	 * @return Number of rows updated.
+	 * @throws SQLException
+	 *             if a database error occurs
+	 */
+	public int update(String sql, Object... params) throws SQLException {
+		try (Connection connection = getConnection()) {
+			return queryRunner.update(connection, sql, params);
+		}
+	}
 	/**
 	 * Executes the query to determine existence of a result.
 	 * 
@@ -125,7 +172,7 @@ public class Database {
 		return result;
 	}
 
-	public boolean doesTableExist(String table, Connection connection) throws SQLException {
+	public boolean doesTableExist(Connection connection, String table) throws SQLException {
 		return checkTable(table, connection);
 	}
 
