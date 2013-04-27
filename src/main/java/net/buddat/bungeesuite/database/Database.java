@@ -13,7 +13,9 @@ import com.jolbox.bonecp.BoneCPConfig;
 
 import net.buddat.bungeesuite.database.DatabaseDependencyException;
 
-
+/**
+ * Manages database initialisation, queries and connection pooling. This class is thread-safe.
+ */
 public class Database {
 	private static final String DRIVER_MYSQL = "com.mysql.jdbc.Driver";
 	
@@ -80,6 +82,24 @@ public class Database {
 	 */
 	public int update(Connection connection, String sql) throws SQLException {
 		return queryRunner.update(connection, sql);
+	}
+	
+	/**
+	 * Executes an SQL INSERT, UPDATE or DELETE query using the specified
+	 * connection, with the specified replacement parameters.
+	 * 
+	 * @param connection
+	 *            The connection to use to run the query.
+	 * @param sql
+	 *            The SQL statement to execute.
+	 * @param params
+	 *            The replacement parameters.
+	 * @return The number of rows updated.
+	 * @throws SQLException
+	 *             if a database error occurs
+	 */
+	public int update(Connection connection, String sql, Object... params) throws SQLException {
+		return queryRunner.update(connection, sql, params);
 	}
 	
 	/**
@@ -173,7 +193,11 @@ public class Database {
 	}
 
 	public boolean doesTableExist(Connection connection, String table) throws SQLException {
-		return checkTable(table, connection);
+		DatabaseMetaData dbm = connection.getMetaData();
+		ResultSet tables = dbm.getTables(null, null, table, null);
+		boolean result = tables.next();
+		tables.close();
+		return result;
 	}
 
 	/**
@@ -192,14 +216,6 @@ public class Database {
 	public ResultSet query(Connection connection, String sql) throws SQLException {
 		Statement statement = connection.createStatement();
 		ResultSet result = statement.executeQuery(sql);
-		return result;
-	}
-
-	protected boolean checkTable(String table, Connection connection) throws SQLException {
-		DatabaseMetaData dbm = connection.getMetaData();
-		ResultSet tables = dbm.getTables(null, null, table, null);
-		boolean result = tables.next();
-		tables.close();
 		return result;
 	}
 }
