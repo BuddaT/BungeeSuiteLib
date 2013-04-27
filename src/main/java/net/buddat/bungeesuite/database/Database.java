@@ -147,7 +147,7 @@ public class Database {
 	 */
 	public String singleResultStringQuery(String query) throws SQLException {
 		Connection connection = getConnection();
-		ResultSet results = sqlQuery(query, connection);
+		ResultSet results = query(connection, query);
 		String result = null;
 		if (results.next()) {
 			result = results.getString(1);
@@ -162,7 +162,7 @@ public class Database {
 	
 	public Object singleResultQuery(String query) throws SQLException {
 		Connection connection = getConnection();
-		ResultSet results = sqlQuery(query, connection);
+		ResultSet results = query(connection, query);
 		Object result = null;
 		if (results.next()) {
 			result = results.getObject(1);
@@ -181,7 +181,7 @@ public class Database {
 	 * to ensure that the connection is properly initialised beforehand and
 	 * closed afterwards.
 	 * 
-	 * @param query
+	 * @param sql
 	 *            Query to execute.
 	 * @param connection
 	 *            Connection with which to execute the query.
@@ -189,9 +189,9 @@ public class Database {
 	 * @throws SQLException
 	 *             if any errors occur while executing the query.
 	 */
-	public ResultSet sqlQuery(String query, Connection connection) throws SQLException {
+	public ResultSet query(Connection connection, String sql) throws SQLException {
 		Statement statement = connection.createStatement();
-		ResultSet result = statement.executeQuery(query);
+		ResultSet result = statement.executeQuery(sql);
 		return result;
 	}
 
